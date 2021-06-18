@@ -84,6 +84,7 @@ Status DBImpl::WriteImpl(const WriteOptions& write_options,
   if (write_options.sync && write_options.disableWAL) {
     return Status::InvalidArgument("Sync writes has to enable WAL.");
   }
+  // two_write_queues 和事务有关
   if (two_write_queues_ && immutable_db_options_.enable_pipelined_write) {
     return Status::NotSupported(
         "pipelined_writes is not compatible with concurrent prepares");
@@ -120,6 +121,7 @@ Status DBImpl::WriteImpl(const WriteOptions& write_options,
                             kDontPublishLastSeq, disable_memtable);
   }
 
+  // unordered_write 直接写 wal, 然后异步写 mem.
   if (immutable_db_options_.unordered_write) {
     const size_t sub_batch_cnt = batch_cnt != 0
                                      ? batch_cnt
